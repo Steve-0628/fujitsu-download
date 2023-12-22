@@ -25,7 +25,7 @@ async function main() {
         if(drivs.length == 0) {
             break
         }
-        const chunkSize = 10;
+        const chunkSize = 4;
         for (let i = 0; i < drivs.length; i += chunkSize) {
             const chunk = drivs.slice(i, i + chunkSize);
             // do whatever

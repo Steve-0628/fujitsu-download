@@ -28,8 +28,6 @@ async function main() {
         const chunkSize = 4;
         for (let i = 0; i < drivs.length; i += chunkSize) {
             const chunk = drivs.slice(i, i + chunkSize);
-            // do whatever
-
             await Promise.all(chunk.map(async (driv) => {
                 try {
                     const resp = await fetch("https://azby.fmworld.net/" + driv.href)
@@ -59,35 +57,6 @@ async function main() {
                     failed.push(driv.href)
                 }
             }))
-        
-            // for (const driv of chunk) {
-            //     try {
-            //         const resp = await fetch("https://azby.fmworld.net/" + driv.href)
-            //         const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
-            //         const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
-            //         for (const a of dom.querySelectorAll("div.frm div p a")) {
-            //             if (fs.existsSync("/mnt/smb/files/fujitsu_server/drivers/" + a.href.split("/").pop())) {
-            //                 console.log("file exists ", a.href)
-            //             } else {
-            //                 console.log("donwloading ", a.href)
-            //                 const resp = await fetch(a.href)
-            //                     .catch((e) => {
-            //                         console.log("Download FAILED ", a.href, e)
-            //                         failed.push(a.href)
-            //                     })
-            //                 if(resp){
-            //                     const buf = await resp.arrayBuffer()
-            //                     const name = a.href.split("/").pop()
-            //                     await fsPromises.writeFile("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
-            //                 }
-            //             }
-            //         }
-                
-            //     } catch (error) {
-            //         console.log("FAILED ", driv.href, error)
-            //         failed.push(driv.href)
-            //     }
-            // }
         }
     }
     console.log("failed ", failed)

@@ -38,13 +38,18 @@ async function main() {
                             failed.push(a.href)
                         })
                     if(resp){
-                        const buf = await resp.arrayBuffer()
-                        const name = a.href.split("/").pop()
-                        // fs.writeFile ("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
-                        const file = fs.createWriteStream("/mnt/smb/files/fujitsu_server/drivers/" + name);
-                        file.write(Buffer.from(buf))
-                        file.close()
-                        console.log("donwloaded  ", a.href)
+                        // check file existance
+                        if (fs.existsSync("/mnt/smb/files/fujitsu_server/drivers/" + a.href.split("/").pop())) {
+                            console.log("file exists ", a.href)
+                        } else {
+                            const buf = await resp.arrayBuffer()
+                            const name = a.href.split("/").pop()
+                            // fs.writeFile ("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
+                            const file = fs.createWriteStream("/mnt/smb/files/fujitsu_server/drivers/" + name);
+                            file.write(Buffer.from(buf))
+                            file.close()
+                            console.log("donwloaded  ", a.href)
+                        }
                     }
                 })
             

@@ -2,8 +2,11 @@ import iconv from "iconv-lite"
 import jsdom from "jsdom"
 import fs from "fs"
 async function main() {
-
+    const failed = []
     for(let i = 0; true; i++) {
+        console.log("=================")
+        console.log("page ", i)
+        console.log("=================")
         const resp = await fetch("https://azby.fmworld.net/app/customer/driversearch/ia/drvialist", {
             "body": `page=${i}&productName=PRIMERGY+RX300+S8+%A5%E9%A5%C3%A5%AF%A5%D9%A1%BC%A5%B9%A5%E6%A5%CB%A5%C3%A5%C8%282.5%A5%A4%A5%F3%A5%C1%A1%DF8%29&productModel=PRIMERGY+RX300+S8+%A5%E9%A5%C3%A5%AF%A5%D9%A1%BC%A5%B9%A5%E6%A5%CB%A5%C3%A5%C8%282.5%A5%A4%A5%F3%A5%C1%A1%DF8%29%2CPYR308R2N2&category=&os=&driverName=`,
             "method": "POST",
@@ -19,20 +22,31 @@ async function main() {
         if(drivs.length == 0) {
             break
         }
-        Promise.all(drivs.map(async (a) => {
+        for (const driv of drivs) {
             // download and write to file
-            const resp = await fetch("https://azby.fmworld.net/" + a.href)
+            const resp = await fetch("https://azby.fmworld.net/" + driv.href)
             const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
             const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
             dom.querySelectorAll("div.frm div p a").forEach(async (a) => {
                 console.log("donwloading ", a.href)
                 const resp = await fetch(a.href)
-                const buf = await resp.arrayBuffer()
-                const name = a.href.split("/").pop()
-                fs.writeFileSync("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
-                console.log("donwloaded  ", a.href)
+                    .catch((e) => {
+                        console.log("Download FAILED ", a.href, e)
+                        failed.push(a.href)
+                    })
+                if(resp){
+                    const buf = await resp.arrayBuffer()
+                    const name = a.href.split("/").pop()
+                    // fs.writeFile ("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
+                    const file = fs.createWriteStream("/mnt/smb/files/fujitsu_server/drivers/" + name);
+                    file.write(Buffer.from(buf))
+                    file.close()
+                    console.log("donwloaded  ", a.href)
+                }
             })
-        }))
+        }
     }
+    console.log("failed ", failed)
+    fs.writeFileSync("/mnt/smb/files/fujitsu_server/drivers/failed.json", JSON.stringify(failed))
 }
 main()

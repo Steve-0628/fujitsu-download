@@ -15,7 +15,7 @@ async function main() {
         });
         const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
         const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
-        const drivs = dom.querySelectorAll("tbody tr td:nth-child(3) a")
+        const drivs = [...dom.querySelectorAll("tbody tr td:nth-child(3) a")]
         if(drivs.length == 0) {
             break
         }

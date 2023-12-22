@@ -1,0 +1,21 @@
+{
+  "name": "fujitsu-driver-download",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "iconv-lite": "^0.6.3",
+    "jsdom": "^23.0.1",
+    "typescript": "^5.3.3"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.6"
+  }
+}

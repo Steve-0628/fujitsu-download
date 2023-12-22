@@ -6,6 +6,7 @@ async function main() {
     for(let i = 0; true; i++) {
         console.log("=================")
         console.log("page ", i)
+        console.log("mem  ", process.memoryUsage())
         console.log("=================")
         const resp = await fetch("https://azby.fmworld.net/app/customer/driversearch/ia/drvialist", {
             "body": `page=${i}&productName=PRIMERGY+RX300+S8+%A5%E9%A5%C3%A5%AF%A5%D9%A1%BC%A5%B9%A5%E6%A5%CB%A5%C3%A5%C8%282.5%A5%A4%A5%F3%A5%C1%A1%DF8%29&productModel=PRIMERGY+RX300+S8+%A5%E9%A5%C3%A5%AF%A5%D9%A1%BC%A5%B9%A5%E6%A5%CB%A5%C3%A5%C8%282.5%A5%A4%A5%F3%A5%C1%A1%DF8%29%2CPYR308R2N2&category=&os=&driverName=`,
@@ -52,6 +53,7 @@ async function main() {
                 failed.push(driv.href)
             }
         }
+        global.gc()
     }
     console.log("failed ", failed)
     fs.writeFileSync("/mnt/smb/files/fujitsu_server/drivers/failed.json", JSON.stringify(failed))

@@ -1,11 +1,15 @@
 import iconv from "iconv-lite"
 import jsdom from "jsdom"
+import fsPromises from "fs/promises"
 import fs from "fs"
 async function main() {
     const failed = []
+    let writing = 0
+
     for(let i = 0; true; i++) {
         console.log("=================")
         console.log("page ", i)
+        console.log("writing ", writing)
         console.log("mem  ", process.memoryUsage())
         console.log("=================")
         const resp = await fetch("https://azby.fmworld.net/app/customer/driversearch/ia/drvialist", {
@@ -24,43 +28,35 @@ async function main() {
             break
         }
         for (const driv of drivs) {
-            // download and write to file
             try {
-                
                 const resp = await fetch("https://azby.fmworld.net/" + driv.href)
                 const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
                 const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
-                dom.querySelectorAll("div.frm div p a").forEach(async (a) => {
-                    console.log("donwloading ", a.href)
-                    const resp = await fetch(a.href)
-                        .catch((e) => {
-                            console.log("Download FAILED ", a.href, e)
-                            failed.push(a.href)
-                        })
-                    if(resp){
-                        // check file existance
-                        if (fs.existsSync("/mnt/smb/files/fujitsu_server/drivers/" + a.href.split("/").pop())) {
-                            console.log("file exists ", a.href)
-                        } else {
+                for (const a of dom.querySelectorAll("div.frm div p a")) {
+                    if (fs.existsSync("/mnt/smb/files/fujitsu_server/drivers/" + a.href.split("/").pop())) {
+                        console.log("file exists ", a.href)
+                    } else {
+                        console.log("donwloading ", a.href)
+                        const resp = await fetch(a.href)
+                            .catch((e) => {
+                                console.log("Download FAILED ", a.href, e)
+                                failed.push(a.href)
+                            })
+                        if(resp){
                             const buf = await resp.arrayBuffer()
                             const name = a.href.split("/").pop()
-                            // fs.writeFile ("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
-                            const file = fs.createWriteStream("/mnt/smb/files/fujitsu_server/drivers/" + name);
-                            file.write(Buffer.from(buf))
-                            file.close()
-                            console.log("donwloaded  ", a.href)
+                            await fsPromises.writeFile("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
                         }
                     }
-                })
+                }
             
             } catch (error) {
                 console.log("FAILED ", driv.href, error)
                 failed.push(driv.href)
             }
         }
-        global.gc()
     }
     console.log("failed ", failed)
-    fs.writeFileSync("/mnt/smb/files/fujitsu_server/drivers/failed.json", JSON.stringify(failed))
+    await fsPromises.writeFile("/mnt/smb/files/fujitsu_server/drivers/failed.json", JSON.stringify(failed))
 }
 main()

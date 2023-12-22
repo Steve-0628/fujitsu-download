@@ -24,26 +24,33 @@ async function main() {
         }
         for (const driv of drivs) {
             // download and write to file
-            const resp = await fetch("https://azby.fmworld.net/" + driv.href)
-            const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
-            const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
-            dom.querySelectorAll("div.frm div p a").forEach(async (a) => {
-                console.log("donwloading ", a.href)
-                const resp = await fetch(a.href)
-                    .catch((e) => {
-                        console.log("Download FAILED ", a.href, e)
-                        failed.push(a.href)
-                    })
-                if(resp){
-                    const buf = await resp.arrayBuffer()
-                    const name = a.href.split("/").pop()
-                    // fs.writeFile ("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
-                    const file = fs.createWriteStream("/mnt/smb/files/fujitsu_server/drivers/" + name);
-                    file.write(Buffer.from(buf))
-                    file.close()
-                    console.log("donwloaded  ", a.href)
-                }
-            })
+            try {
+                
+                const resp = await fetch("https://azby.fmworld.net/" + driv.href)
+                const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
+                const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
+                dom.querySelectorAll("div.frm div p a").forEach(async (a) => {
+                    console.log("donwloading ", a.href)
+                    const resp = await fetch(a.href)
+                        .catch((e) => {
+                            console.log("Download FAILED ", a.href, e)
+                            failed.push(a.href)
+                        })
+                    if(resp){
+                        const buf = await resp.arrayBuffer()
+                        const name = a.href.split("/").pop()
+                        // fs.writeFile ("/mnt/smb/files/fujitsu_server/drivers/" + name, Buffer.from(buf))
+                        const file = fs.createWriteStream("/mnt/smb/files/fujitsu_server/drivers/" + name);
+                        file.write(Buffer.from(buf))
+                        file.close()
+                        console.log("donwloaded  ", a.href)
+                    }
+                })
+            
+            } catch (error) {
+                console.log("FAILED ", driv.href, error)
+                failed.push(driv.href)
+            }
         }
     }
     console.log("failed ", failed)

@@ -34,6 +34,10 @@ async function main() {
                     const utf8 = iconv.decode(Buffer.from(await resp.arrayBuffer()), "euc-jp")
                     const dom = new (new jsdom.JSDOM().window).DOMParser().parseFromString(utf8, "text/html")
                     for (const a of dom.querySelectorAll("div.frm div p a")) {
+                        if (!fs.existsSync("/mnt/smb/files/fujitsu_server/drivers/docs" + a.href.split("/").pop() + ".txt")) {
+                            const doc = dom.querySelector("textarea").innerHTML
+                            await fsPromises.writeFile("/mnt/smb/files/fujitsu_server/drivers/docs/" + a.href.split("/").pop() + ".txt", doc)
+                        }
                         if (fs.existsSync("/mnt/smb/files/fujitsu_server/drivers/" + a.href.split("/").pop())) {
                             console.log("file exists ", a.href)
                         } else {
